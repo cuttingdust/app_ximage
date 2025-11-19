@@ -10,18 +10,10 @@ static void ThreadMain(void *para)
     _endthread();
 }
 
-XThread::XThread()
-{
-}
-
-XThread::~XThread()
-{
-}
-
 bool XThread::Start()
 {
-    th = ::_beginthread(ThreadMain, 0, this);
-    if (((int)th) <= 0)
+    th_ = ::_beginthread(ThreadMain, 0, this);
+    if (((int)th_) <= 0)
     {
         return false;
     }
@@ -30,5 +22,15 @@ bool XThread::Start()
 
 void XThread::Wait()
 {
-    ::WaitForSingleObject((HANDLE)th, INFINITE);
+    ::WaitForSingleObject((HANDLE)th_, INFINITE);
+}
+
+void XThread::Suspend()
+{
+    ::SuspendThread((HANDLE)th_);
+}
+
+void XThread::Resume()
+{
+    ::ResumeThread((HANDLE)th_);
 }

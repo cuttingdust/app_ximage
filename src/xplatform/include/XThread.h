@@ -6,16 +6,14 @@
 class XPLATFORM_EXPORT XThread
 {
 public:
-    XThread();
-    virtual ~XThread();
-
-public:
     bool         Start();
     void         Wait();
     virtual void Main() = 0;
+    void         Suspend();
+    void         Resume();
 
 private:
-    unsigned int th = 0;
+    unsigned int th_ = 0;
 };
 
 
