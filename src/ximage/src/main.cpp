@@ -1,4 +1,6 @@
 ﻿#include <XThread.h> /// 自定义线程库头文件
+#include <XMutex.h>
+
 #include <windows.h> /// Windows API 头文件
 #include <iostream>  /// C++ 标准输入输出
 
@@ -58,27 +60,30 @@ public:
 
 //////////////////////////////////////////////////////////////////
 
-static char      bufx[1024] = { 0 };
-CRITICAL_SECTION cs;
+static char bufx[1024] = { 0 };
+// CRITICAL_SECTION cs;
+static XMutex mutex;
 class MyXThread : public XThread
 {
 public:
     void Main()
     {
-        std::cout << "In MyThread" << std::endl;
+        std::cout << "In MyThread: " << c << std::endl;
         for (;;)
         {
             int size = sizeof(bufx);
-            ::EnterCriticalSection(&cs);
+            // ::EnterCriticalSection(&cs);
+            mutex.Lock();
             for (int i = 0; i < size; i++)
             {
                 bufx[i] = c;
-                // Sleep(1);
+                ::Sleep(1);
             }
             bufx[size - 1] = '\0';
             std::cout << "[" << bufx << "]" << std::endl;
-            ::LeaveCriticalSection(&cs);
-            Sleep(1000);
+            // ::LeaveCriticalSection(&cs);
+            mutex.Unlock();
+            ::Sleep(1);
         }
     }
     char c;
@@ -200,7 +205,7 @@ int main(int argc, char *argv[])
 
     {
         /// 测试临界区保护
-        ::InitializeCriticalSection(&cs);
+        // ::InitializeCriticalSection(&cs);
         MyXThread myt1;
         myt1.c = 'A';
         MyXThread myt2;
