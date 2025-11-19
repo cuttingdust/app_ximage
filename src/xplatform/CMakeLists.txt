@@ -7,14 +7,14 @@ set(DPS_LIBRARYS
     ${OpenCV_LIBS}
 )
 
-cpp_execute(${PROJECT_NAME})
+cpp_library(${PROJECT_NAME})
 
 if(MSVC)
     #设为启动项
 
     # set_property(DIRECTORY ${CMAKE_BINARY_DIR} PROPERTY VS_STARTUP_PROJECT ${PROJECT_NAME}) 
     set_target_properties(${PROJECT_NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY ${OUT_RUN_PATH})
-    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "XArray")
+    set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "XPlatform")
 
     # set_target_properties(${PROJECT_NAME} PROPERTIES COMPILE_FLAGS "/GL")
     # set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "/LTCG")
