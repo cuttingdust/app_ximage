@@ -71,6 +71,7 @@ include(CommonTools)
 
 add_subdirectory(ximage)
 add_subdirectory(xplatform)
+add_subdirectory(xtest)
 
 # 拷贝assert目录到输出目录
 set(ASSERT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/assert)
