@@ -45,22 +45,25 @@ int ImageThread::DealPercent()
 {
     int cur   = 0;
     int total = 0;
-    for (int i = 0; i < threads.size(); i++)
+    for (auto &thread : threads)
     {
-        cur += (threads[i]->cur - threads[i]->begin);
-        total += (threads[i]->end - threads[i]->begin);
+        cur += thread->cur - thread->begin;
+        total += thread->end - thread->begin;
     }
     if (total == 0)
+    {
         return 0;
+    }
+
     int per = cur * 100 / total;
     return per;
 }
 
 void ImageThread::Wait()
 {
-    for (int i = 0; i < threads.size(); i++)
+    for (auto &thread : threads)
     {
-        threads[i]->wait();
+        thread->wait();
     }
 }
 
@@ -98,6 +101,8 @@ void ImageThread::run()
         img[i * 4]     = B; /// 更新蓝色通道
         img[i * 4 + 1] = G; /// 更新绿色通道
         img[i * 4 + 2] = R; /// 更新红色通道
+
+
         /// 注意：Alpha通道(data[i * 4 + 3])保持不变，保持透明度
         cur = i;
     }

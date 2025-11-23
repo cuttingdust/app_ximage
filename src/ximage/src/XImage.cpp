@@ -28,9 +28,7 @@ XImage::XImage(QWidget *parent, Qt::WindowFlags f) : QWidget(parent, f)
     ui_->setupUi(this);
 }
 
-XImage::~XImage()
-{
-}
+XImage::~XImage() = default;
 
 auto XImage::Open() -> void
 {
@@ -42,7 +40,7 @@ auto XImage::Open() -> void
     if (!impl_->img_)
     {
         delete impl_->img_;
-        impl_->img_ = NULL;
+        impl_->img_ = nullptr;
     }
     impl_->img_ = new QImage(filename);
     if (!impl_->img_)
@@ -59,7 +57,7 @@ auto XImage::Deal() -> void
 {
     /// 获取亮度调整系数
     /// ui_->bright->value() 返回滑块的值(0-100)，除以100转换为比例系数(0.0-1.0)
-    float b      = (float)ui_->bright->value() / 100;
+    float bright = static_cast<float>(ui_->bright->value()) / 100;
     int   thread = ui_->thread->value();
 
     /// 安全检查：确保源图像存在
@@ -113,7 +111,7 @@ auto XImage::Deal() -> void
     //     /// 注意：Alpha通道(data[i * 4 + 3])保持不变，保持透明度
     // }
 
-    ImageThread::DealImage(data, pixCount, b, thread);
+    ImageThread::DealImage(data, pixCount, bright, thread);
     for (;;)
     {
         int percent = ImageThread::DealPercent();
