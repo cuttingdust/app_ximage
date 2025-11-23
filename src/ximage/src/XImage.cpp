@@ -1,8 +1,9 @@
 ﻿#include "XImage.h"
 #include "ui_ximage.h"
 
+#include "ImageThread.h"
+
 #include <QtWidgets/QFileDialog>
-#include <algorithm>
 
 class XImage::PImpl
 {
@@ -58,7 +59,8 @@ auto XImage::Deal() -> void
 {
     /// 获取亮度调整系数
     /// ui_->bright->value() 返回滑块的值(0-100)，除以100转换为比例系数(0.0-1.0)
-    float b = (float)ui_->bright->value() / 100;
+    float b      = (float)ui_->bright->value() / 100;
+    int   thread = ui_->thread->value();
 
     /// 安全检查：确保源图像存在
     if (!impl_->img_)
@@ -77,39 +79,56 @@ auto XImage::Deal() -> void
 
     /// 计算图像总像素数
     /// width() * height() 得到图像包含的总像素数量
-    int pixCount = impl_->img_->width() * impl_->img_->height();
+    int           pixCount = impl_->img_->width() * impl_->img_->height();
+    QElapsedTimer t;
+    t.start();
+    // /// 遍历图像的所有像素进行处理
+    // for (int i = 0; i < pixCount; i++)
+    // {
+    //     /// 当前像素在数据数组中的起始位置是 i * 4
+    //     /// 因为每个像素占4个字节：B, G, R, A (可能是BGRA格式)
+    //
+    //     /// 提取并调整蓝色通道亮度
+    //     /// data[i * 4] 是蓝色分量，乘以亮度系数b
+    //     int B = data[i * 4] * b;
+    //
+    //     /// 提取并调整绿色通道亮度
+    //     /// data[i * 4 + 1] 是绿色分量
+    //     int G = data[i * 4 + 1] * b;
+    //
+    //     /// 提取并调整红色通道亮度
+    //     /// data[i * 4 + 2] 是红色分量
+    //     int R = data[i * 4 + 2] * b;
+    //
+    //     /// 限制RGB值在有效范围内(0-255)
+    //     /// 防止亮度调整后值溢出（超过255会截断为255）
+    //     B = std::clamp(B, 0, 255);
+    //     G = std::clamp(G, 0, 255);
+    //     R = std::clamp(R, 0, 255);
+    //
+    //     /// 将处理后的值写回图像数据
+    //     data[i * 4]     = B; /// 更新蓝色通道
+    //     data[i * 4 + 1] = G; /// 更新绿色通道
+    //     data[i * 4 + 2] = R; /// 更新红色通道
+    //     /// 注意：Alpha通道(data[i * 4 + 3])保持不变，保持透明度
+    // }
 
-    /// 遍历图像的所有像素进行处理
-    for (int i = 0; i < pixCount; i++)
+    ImageThread::DealImage(data, pixCount, b, thread);
+    for (;;)
     {
-        /// 当前像素在数据数组中的起始位置是 i * 4
-        /// 因为每个像素占4个字节：B, G, R, A (可能是BGRA格式)
-
-        /// 提取并调整蓝色通道亮度
-        /// data[i * 4] 是蓝色分量，乘以亮度系数b
-        int B = data[i * 4] * b;
-
-        /// 提取并调整绿色通道亮度
-        /// data[i * 4 + 1] 是绿色分量
-        int G = data[i * 4 + 1] * b;
-
-        /// 提取并调整红色通道亮度
-        /// data[i * 4 + 2] 是红色分量
-        int R = data[i * 4 + 2] * b;
-
-        /// 限制RGB值在有效范围内(0-255)
-        /// 防止亮度调整后值溢出（超过255会截断为255）
-        B = std::min(B, 255);
-        G = std::min(G, 255);
-        R = std::min(R, 255);
-
-        /// 将处理后的值写回图像数据
-        data[i * 4]     = B; /// 更新蓝色通道
-        data[i * 4 + 1] = G; /// 更新绿色通道
-        data[i * 4 + 2] = R; /// 更新红色通道
-        /// 注意：Alpha通道(data[i * 4 + 3])保持不变，保持透明度
+        int percent = ImageThread::DealPercent();
+        ui_->progress->setValue(percent);
+        if (percent >= 100)
+        {
+            break;
+        }
     }
+    ImageThread::Wait();
 
+    int  ms       = t.elapsed();
+    char buf[128] = { 0 };
+    sprintf(buf, "%d毫秒", ms);
+    ui_->dealtime->setText(buf);
     /// 显示处理后的图像
     /// ViewImage函数将处理后的图像显示在UI上
     ViewImage(&impl_->imgDeal_);
